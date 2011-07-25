@@ -55,6 +55,7 @@ if ( -r "$cwd/packagemanifest.yml") {
 # packagemanifest.yml
 # debian/changelog
 # Makefile
+`mkdir -p debian`;
 my $dependenciesmissing = [];
 
 my $dependencies = {
