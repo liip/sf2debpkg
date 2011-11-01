@@ -1,0 +1,72 @@
+#!/usr/bin/env php
+<?php
+/*
+ * This command takes a clean "symfony-standard" distribution and moves the files
+ * around to have a single "main" application.
+ */
+
+$cwd = getcwd();
+if (!file_exists($cwd."/app/") || !file_exists($cwd."/app/AppKernel.php") || !file_exists($cwd."/web/app.php")) {
+    echo "Command has to be executed in the root dir of a Symfony2 project and app/AppKernel.php and web/app.php have to exist.\n";
+    exit(1);
+}
+
+if (file_exists($cwd."/app/main")) {
+    echo "There appears to be an /app/main directory already.\n";
+    exit(2);
+}
+
+mkdir($cwd."/app/main");
+mkdir($cwd."/app/main/cache", 0770);
+mkdir($cwd."/app/main/logs", 0770);
+rename($cwd."/app/Resources", $cwd."/app/main/Resources");
+rename($cwd."/app/config", $cwd."/app/main/config");
+rename($cwd."/app/AppCache.php", $cwd."/app/main/MainCache.php");
+rename($cwd."/app/AppKernel.php", $cwd."/app/main/MainKernel.php");
+rename($cwd."/app/console", $cwd."/app/main/console");
+rename($cwd."/app/phpunit.xml.dist", $cwd."/app/main/phpunit.xml.dist");
+rename($cwd."/web/app.php", $cwd."/web/main.php");
+rename($cwd."/web/app_dev.php", $cwd."/web/main_dev.php");
+
+$replaces = array(
+    "web/main.php" => array(
+        "require_once __DIR__.'/../app/AppKernel.php';" => "require_once __DIR__.'/../app/main/MainKernel.php';",
+        "//require_once __DIR__.'/../app/AppCache.php';" => "//require_once __DIR__.'/../app/main/MainCache.php';",
+        "\$kernel = new AppKernel('prod', false);" => "\$kernel = new MainKernel('prod', false);",
+        "//\$kernel = new AppCache(\$kernel);" => "//\$kernel = new MainCache(\$kernel);"
+    ),
+    "web/main_dev.php" => array(
+        "require_once __DIR__.'/../app/AppKernel.php';" => "require_once __DIR__.'/../app/main/MainKernel.php';",
+        "\$kernel = new AppKernel('dev', true);" => "\$kernel = new MainKernel('dev', true);",
+    ),
+    "app/main/MainKernel.php" => array(
+        "class AppKernel extends Kernel\n{" => "class MainKernel extends Kernel\n{\n    public function registerRootDir()\n    {\n        return __DIR__;\n    }\n",
+    ),
+    "app/main/MainCache.php" => array(
+        "require_once __DIR__.'/AppKernel.php';" => "require_once __DIR__.'/MainKernel.php';",
+        "class AppCache extends HttpCache" => "class MainCache extends HttpCache",
+    ),
+    "app/main/phpunit.xml.dist" => array(
+        '"bootstrap.php.cache"' => '"../bootstrap.php.cache"',
+        '>../src/*' => '>../../src/*',
+    ),
+    "app/main/console" => array(
+        "require_once __DIR__.'/AppKernel.php';" => "require_once __DIR__.'/MainKernel.php';",
+	"require_once __DIR__.'/bootstrap.php.cache';" => "require_once __DIR__.'/../bootstrap.php.cache';",
+	"\$kernel = new AppKernel(\$env, \$debug);" => "\$kernel = new MainKernel(\$env, \$debug);",
+    ),
+    "bin/vendors" => array(
+	"escapeshellarg($rootDir.'/app/console')" => "escapeshellarg($rootDir.'/app/main/console')",
+    ),
+);
+
+foreach ($replaces AS $file => $replace) {
+    if (file_exists($file)) {
+        $contents = file_get_contents($file);
+        file_put_contents($file.".bak", $contents);
+        foreach ($replace AS $old => $new) {
+            $contents = str_replace($old, $new, $contents);
+        }
+        file_put_contents($file, $contents);
+    }
+}
