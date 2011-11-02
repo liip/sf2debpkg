@@ -56,7 +56,7 @@ $replaces = array(
 	"\$kernel = new AppKernel(\$env, \$debug);" => "\$kernel = new MainKernel(\$env, \$debug);",
     ),
     "bin/vendors" => array(
-	"escapeshellarg($rootDir.'/app/console')" => "escapeshellarg($rootDir.'/app/main/console')",
+	"escapeshellarg(\$rootDir.'/app/console')" => "escapeshellarg(\$rootDir.'/app/main/console')",
     ),
 );
 
