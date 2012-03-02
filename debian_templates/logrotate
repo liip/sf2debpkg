@@ -12,3 +12,12 @@
         fi 
     endscript 
 } 
+
+/var/log/sitelogs/_-_PACKAGENAME_-_/cron.log  {
+    daily
+    missingok
+    rotate 30
+    compress
+    delaycompress
+    create 640 www-data adm
+}

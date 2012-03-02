@@ -253,7 +253,7 @@ sub make_cron {
         foreach my $command (keys %{$self->{cron}}) {
             $scheduling = $self->{cron}->{$command};
             my $wwwroot = $self->{helper}->safe_wwwroot($self->{name}, 1);
-            $cron_data.= "$scheduling www-data cd $wwwroot && php app/$self->{name}/console $command\n";
+            $cron_data.= "$scheduling www-data cd $wwwroot && php app/$self->{name}/console $command >> /var/log/sitelogs/$self->{destination}/cron.log 2>&1\n";
         }
         write_file("$self->{destprefix}.cron.d", $cron_data);
     }
