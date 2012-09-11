@@ -18,7 +18,7 @@
     # Can afford to do this because we change the css name each time it changes:
     ExpiresByType text/css "access plus 7 days"
 
-    ExpiresDefault "access plus 1 hours"
+#    ExpiresDefault "access plus 1 hours"
 
     __HTPASSWD__
 
